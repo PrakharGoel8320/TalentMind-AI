@@ -1,0 +1,7 @@
+{
+    "weights": {
+        "semantic_score": 0.4,
+        "keyword_score": 0.3,
+        "behavioral_score": 0.3
+    }
+}
