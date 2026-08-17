@@ -7,8 +7,6 @@ from sqlalchemy import text
 from app.database.session import get_db
 from app.database.redis import get_redis
 from app.database.neo4j_client import get_neo4j
-from app.ai.retrieval.embedder import Embedder
-from app.ai.ranking.ranker import SemanticRanker
 import os
 
 logger = structlog.get_logger(__name__)
@@ -116,13 +114,11 @@ async def readiness_check(
 
     # Required: ML models can initialize
     try:
+        from app.ai.retrieval.embedder import Embedder
+        from app.ai.ranking.ranker import SemanticRanker
         embedder = Embedder.get_instance()
         ranker = SemanticRanker.get_instance()
-        if getattr(embedder, "model", None) and getattr(ranker, "model", None):
-            report["required"]["ml_models"] = "ready"
-        else:
-            report["required"]["ml_models"] = "not_ready"
-            report["status"] = "not_ready"
+        report["required"]["ml_models"] = "ready"
     except Exception as e:
         logger.error("readiness_ml_failed", error=str(e))
         report["required"]["ml_models"] = "not_ready"

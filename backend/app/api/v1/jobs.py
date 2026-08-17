@@ -7,7 +7,6 @@ from app.schemas.job import JobCreate, JobResponse
 from app.schemas.match import MatchResponse
 from app.models.job import Job
 from app.models.match import Match
-from app.ai.orchestrator import AIOrchestrator
 import uuid
 from app.utils.logger import get_logger
 

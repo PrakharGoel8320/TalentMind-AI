@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 import uuid
 from pydantic import BaseModel
 from typing import List, Any, Dict, Optional
-from app.ai.agent.graph import TalentMindAgent
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from sqlalchemy import select
@@ -37,6 +36,7 @@ async def run_agent(
         
     job_description = job.description or ""
     
+    from app.ai.agent.graph import TalentMindAgent
     agent = TalentMindAgent()
     
     # Run agent in thread since it contains synchronous ML and LangGraph calls
