@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Mail, Lock, User, Briefcase } from 'lucide-react';
 import { authApi } from '@/features/auth/api';
+import { getApiBaseUrl } from '@/lib/apiClient';
 import { useAuth } from '@/providers/AuthProvider';
 
 export default function RegisterPage() {
@@ -34,7 +35,19 @@ export default function RegisterPage() {
       login(data.access_token, data.user);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      if (err?.response) {
+        // The server responded with an error status (4xx/5xx).
+        const detail = err.response.data?.detail;
+        setError(typeof detail === 'string' ? detail : 'Registration failed. Please try again.');
+      } else {
+        // No response object means the request never reached the backend
+        // (wrong API URL, CORS block, mixed content, or server down).
+        console.error(`[auth] Register request failed. API base URL = ${getApiBaseUrl()}`, err);
+        setError(
+          `Cannot reach the server at ${getApiBaseUrl()}. ` +
+            'Check that NEXT_PUBLIC_API_URL points to your backend and that the backend is running.'
+        );
+      }
     } finally {
       setIsLoading(false);
     }
