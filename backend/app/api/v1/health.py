@@ -34,7 +34,8 @@ async def health_check(
         
     # 2. Redis Check
     try:
-        await redis.ping()
+        import asyncio
+        await asyncio.wait_for(redis.ping(), timeout=2.0)
         status_report["dependencies"]["redis"] = "healthy"
     except Exception as e:
         logger.error("healthcheck_redis_failed", error=str(e))
@@ -43,7 +44,8 @@ async def health_check(
 
     # 3. Neo4j Check
     try:
-        await neo4j.verify_connectivity()
+        import asyncio
+        await asyncio.wait_for(neo4j.verify_connectivity(), timeout=2.0)
         status_report["dependencies"]["neo4j"] = "healthy"
     except Exception as e:
         logger.error("healthcheck_neo4j_failed", error=str(e))

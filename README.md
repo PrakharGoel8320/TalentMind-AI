@@ -2,117 +2,117 @@
 
 An **AI-powered recruiter platform** that evaluates, ranks, and acts on candidates using a deterministic intelligence pipeline, LangGraph agent orchestration, and human-in-the-loop approval for all external actions.
 
-![Overview](docs/images/slide_1_img_0.png)
+## 🎯 Problem
+Recruiters spend countless hours manually parsing resumes and comparing candidates against job descriptions, often relying on biased heuristics. Black-box AI tools exist, but they lack explainability and often hallucinate or make decisions without proper human oversight.
 
-## Key Features
+## 💡 Solution
+TalentMind AI solves this by employing a completely **deterministic ML pipeline** alongside an agentic layer. We leverage FAISS for fast retrieval, SentenceTransformers & CrossEncoders for deterministic semantic ranking, and LangGraph for reasoning. Crucially, **every agent action is gated by a human approval queue**, providing full explainability and safety.
 
-* **Deterministic Candidate Intelligence**: FAISS retrieval → feature extraction → Cross-Encoder reranking → behavioral scoring → fusion/ranking
-* **LangGraph Agent**: Plans, uses pipeline tools, proposes actions (never executes directly)
-* **Human-in-the-Loop**: All external actions require recruiter approval before execution
-* **Mock/Real Provider Boundaries**: Email (mock/SMTP) and LLM (mock/Ollama/OpenAI) clearly separated
+## ✨ Key Features
+* **Deterministic Candidate Intelligence**: FAISS retrieval → deterministic feature extraction → Cross-Encoder reranking → behavioral scoring → fusion ranking.
+* **LangGraph Agent**: Plans, uses pipeline tools, and proposes actions (never executes directly).
+* **Human-in-the-Loop**: All external actions require recruiter approval before execution.
+* **Mock/Real Provider Boundaries**: Email (mock/SMTP) and LLM (mock/Ollama/OpenAI) clearly separated.
 
-### System Architecture
-
+## 🏗 System Architecture
 ![System Architecture](docs/images/slide_2_img_1.png)
 
-## Getting Started
+## 💻 Tech Stack
+* **Frontend**: Next.js 14, React, TailwindCSS, TanStack Query, Framer Motion
+* **Backend**: FastAPI, Python 3.12, SQLAlchemy, asyncpg, Poetry
+* **Data Layer**: PostgreSQL (primary), Redis (optional), Neo4j (optional)
+* **ML/AI**: PyTorch (CPU-optimized), SentenceTransformers, FAISS, Cross-Encoder, LangGraph
 
-### Prerequisites
-
-- Python 3.12+ with [Poetry](https://python-poetry.org/)
-- Node.js 18+
-- Copy `.env.example` to `backend/.env`
-
-### Backend (FastAPI)
-
-```bash
-cd backend
-poetry install
-poetry run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+## 📁 Project Structure
+```text
+TalentMind AI/
+├── backend/          # FastAPI server, ML pipelines, and Agent logic
+├── frontend/         # Next.js 14 dashboard
+├── infra/            # Docker, local setup files
+└── docs/             # Documentation and screenshots
 ```
 
-### Frontend (Next.js)
+## 🚀 Getting Started (Local Setup)
 
+### Prerequisites
+- Python 3.12+
+- Node.js 18+
+- PostgreSQL (or use SQLite for dev)
+
+### Environment Variables
+Copy `.env.example` to `backend/.env` and `frontend/.env.local`
+
+**Minimum `backend/.env`:**
+```env
+DATABASE_URL=sqlite+aiosqlite:///./test.db
+# For production: postgresql+asyncpg://user:pass@host/db
+JWT_SECRET=CHANGE_ME_TO_A_LONG_RANDOM_SECRET
+BACKEND_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+EMAIL_MODE=mock
+LLM_PROVIDER=mock
+```
+
+**Minimum `frontend/.env.local`:**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+### Running Locally
+
+**Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+*Note: We recommend setting up a virtual environment first.*
+
+**Database Seeding (Demo Data):**
+```bash
+cd backend
+python -m app.seed_demo
+```
+
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
 Open http://localhost:3000 — login with any non-empty email/password (demo auth).
 
-### Environment Setup
+## 🌍 Deployment
+This repository is optimized for **Render** (Backend) and **Vercel** (Frontend).
+- **Backend (Render):**
+  - Environment: Python 3
+  - Build Command: `pip install -r requirements.txt`
+  - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+  - RAM: 512 MiB minimum (Models are lazy-loaded to prevent OOM)
+- **Frontend (Vercel):**
+  - Framework: Next.js
+  - Build Command: `npm run build`
 
-Minimum variables (see `.env.example` for full list):
+### 🔗 Live Demo
+* [Frontend Live URL](https://talentmind-ai-frontend.vercel.app/) *(example link)*
+* [Backend Health Endpoint](https://talentmind-ai-backend.onrender.com/api/v1/health) *(example link)*
 
-```env
-DATABASE_URL=sqlite+aiosqlite:///./test.db
-JWT_SECRET=CHANGE_ME_TO_A_LONG_RANDOM_SECRET
-BACKEND_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-EMAIL_MODE=mock
-LLM_PROVIDER=mock
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-```
+## 🔗 Important API Endpoints
+* `GET /api/v1/health` - Fast, non-blocking health check (used by Render)
+* `GET /api/v1/readiness` - Full ML readiness probe
+* `POST /api/v1/jobs/{job_id}/rank` - Run deterministic ranking pipeline
+* `POST /api/v1/agent/chat` - Interact with the LangGraph orchestrator
+* `POST /api/v1/approvals/{id}/approve` - Human-in-the-loop approval execution
 
-### Database Seeding (Demo Data)
+## 📸 Screenshots
+*(No screenshots available in this environment. Replace with real ones if they exist in docs/images)*
+![Overview](docs/images/slide_1_img_0.png)
 
-```bash
-cd backend
-poetry run python -m app.seed_demo
-```
-
-This seeds a realistic demo job (*Senior Backend Engineer - AI Platform*) and 4 deterministic candidate profiles for immediate presentation.
-
-### Running Tests
-
-```bash
-# Backend (89 tests including determinism verification)
-cd backend && poetry run pytest tests -v
-
-# Frontend Unit Tests
-cd frontend && npm test
-
-# Frontend Production Build Check
-cd frontend && npm run build
-
-# Playwright E2E User Journey Tests
-cd frontend && npx playwright test
-```
-
-## Demo Workflow
-
-See [docs/DEMO_GUIDE.md](docs/DEMO_GUIDE.md) for the full hackathon demo path:
-
-1. Login → Dashboard → Candidates → Jobs
-2. Rank candidates (deterministic pipeline)
-3. Agent Panel → ask recruiter questions → propose email action
-4. Approvals → Approve → Execute → mock email recorded as EXECUTED
-
-## Mock vs Real Providers
-
-| Provider | Default | Env Variable |
-|----------|---------|--------------|
-| Email | Mock (no real send) | `EMAIL_MODE=mock` or `smtp` |
-| LLM Agent | Mock | `LLM_PROVIDER=mock`, `ollama`, or `openai` |
-| Auth | Demo (any credentials) | Production would use real user DB |
-
-## Technologies
-
-* **Frontend**: Next.js 14, React, TailwindCSS, TanStack Query, Framer Motion
-* **Backend**: FastAPI, Python 3.12, SQLAlchemy, Poetry
-* **ML**: SentenceTransformers, FAISS, Cross-Encoder, LangGraph
-* **Safety**: Human approval queue, `assert_action_approved` guard
-
-## Documentation
-
-- [Executive Project Summary](docs/PROJECT_SUMMARY.md) — one-page architectural & value overview
-- [Judge Demo Script (3-Minute Walkthrough)](docs/JUDGE_DEMO_SCRIPT.md) — live hackathon presentation guide
-- [Judge Q&A & Technical Defense](docs/JUDGE_QA.md) — 16 technical defense answers
-- [Evidence Index](docs/EVIDENCE_INDEX.md) — source code and test mapping for all claims
-- [Demo Guide](docs/DEMO_GUIDE.md) — step-by-step setup and demo path
-- [Troubleshooting & Diagnostics](docs/TROUBLESHOOTING.md) — failure recovery guide
-- [Submission Checklist](docs/SUBMISSION_CHECKLIST.md) — pre-submission verification checklist
-- [Part 12 Completion Report](docs/PART_12_COMPLETION_REPORT.md) — final engineering audit report
+## 📚 Documentation
+- [Executive Project Summary](docs/PROJECT_SUMMARY.md)
+- [Judge Demo Script (3-Minute Walkthrough)](docs/JUDGE_DEMO_SCRIPT.md)
+- [Judge Q&A & Technical Defense](docs/JUDGE_QA.md)
+- [Evidence Index](docs/EVIDENCE_INDEX.md)
+- [Demo Guide](docs/DEMO_GUIDE.md)
 
 ---
 *Built for the India Runs Data & AI Challenge.*

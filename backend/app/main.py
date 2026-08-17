@@ -25,19 +25,7 @@ logger = get_logger("app.startup")
 async def lifespan(app: FastAPI):
     logger.info("app_starting", version=settings.VERSION)
     
-    # Warm-up Models and Indices
-    import time
-    start = time.time()
-    from app.ai.ranking.ranker import SemanticRanker
-    from app.ai.retrieval.embedder import Embedder
-    from app.ai.retrieval.service import RetrievalService
-    
-    logger.info("Warming up ML models and FAISS index...")
-    SemanticRanker.get_instance()
-    Embedder.get_instance()
-    # Initialize service to load FAISS index
-    RetrievalService()
-    logger.info(f"Warm-up completed in {time.time() - start:.2f}s")
+    # ML Models are lazy-loaded to prevent Render startup OOM and timeouts.
     
     yield
     logger.info("app_shutting_down")
