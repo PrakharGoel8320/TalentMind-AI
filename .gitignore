@@ -82,7 +82,10 @@ logs/
 *.xlsx
 *.csv
 datasets/
-models/
+# NOTE: We intentionally do NOT ignore 'models/' globally here because
+# backend/app/models/ is a critical Python package. Only ignore top-level
+# ML model artifact folders at the repo root level.
+/models/
 colab_train/
 colab_train.zip
 
