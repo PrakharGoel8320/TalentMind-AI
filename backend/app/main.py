@@ -13,6 +13,8 @@ from app.core.middlewares import CorrelationIdMiddleware, RequestLoggingMiddlewa
 from app.core.exceptions import DomainException, domain_exception_handler, generic_exception_handler
 from app.utils.logger import setup_logger, get_logger
 from app.api.v1 import health, candidates, jobs, skills, auth, agent, approvals
+from app.database.session import engine
+from app.models import Base
 from app.database.neo4j_client import neo4j_client
 from app.database.redis import close_redis
 
@@ -25,7 +27,13 @@ logger = get_logger("app.startup")
 async def lifespan(app: FastAPI):
     logger.info("app_starting", version=settings.VERSION)
     
-    # ML Models are lazy-loaded to prevent Render startup OOM and timeouts.
+    # Automatically initialize database schema if tables do not exist
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("database_tables_initialized")
+    except Exception as e:
+        logger.warning(f"database_table_init_notice: {e}")
     
     yield
     logger.info("app_shutting_down")
@@ -51,7 +59,8 @@ app.add_middleware(CorrelationIdMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins(),
+    allow_origins=settings.cors_origins() if settings.cors_origins() else ["*"],
+    allow_origin_regex=r"^https://.*\.vercel\.app$|^http://localhost(:\d+)?$|^http://127\.0\.0\.1(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

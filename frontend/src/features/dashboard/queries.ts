@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { getApiBaseUrl } from '@/lib/apiClient';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = getApiBaseUrl();
 
 export interface PipelineStatus {
   status: string;
