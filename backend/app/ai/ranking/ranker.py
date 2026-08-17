@@ -3,11 +3,6 @@ import hashlib
 import time
 from typing import List, Dict, Any, Tuple
 from functools import lru_cache
-try:
-    from sentence_transformers.cross_encoder import CrossEncoder
-except ImportError:
-    CrossEncoder = None
-import torch
 from app.ai.ranking.config import config
 
 logger = logging.getLogger(__name__)

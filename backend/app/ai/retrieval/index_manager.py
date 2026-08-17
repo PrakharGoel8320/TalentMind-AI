@@ -1,8 +1,5 @@
-# pyrefly: ignore [missing-import]
-import faiss
 import json
 import logging
-# pyrefly: ignore [missing-import]
 import numpy as np
 from typing import List, Tuple
 from app.ai.retrieval.config import settings
@@ -29,12 +26,17 @@ class FaissIndexManager:
         return cls._instance
 
     def _init_index(self):
-        if settings.FAISS_INDEX_TYPE == "HNSWFlat":
-            logger.info("Initializing faiss.IndexHNSWFlat")
-            self.index = faiss.IndexHNSWFlat(self.dimension, 32, faiss.METRIC_INNER_PRODUCT)
-        else:
-            logger.info("Initializing faiss.IndexFlatIP")
-            self.index = faiss.IndexFlatIP(self.dimension)
+        try:
+            import faiss
+            if settings.FAISS_INDEX_TYPE == "HNSWFlat":
+                logger.info("Initializing faiss.IndexHNSWFlat")
+                self.index = faiss.IndexHNSWFlat(self.dimension, 32, faiss.METRIC_INNER_PRODUCT)
+            else:
+                logger.info("Initializing faiss.IndexFlatIP")
+                self.index = faiss.IndexFlatIP(self.dimension)
+        except Exception as e:
+            logger.error(f"Failed to initialize FAISS: {e}")
+            self.index = None
             
         self.id_mapping = []
 
@@ -42,6 +44,7 @@ class FaissIndexManager:
         """Loads index and mapping from disk if they exist, otherwise initializes new."""
         if os.path.exists(self.index_path) and os.path.exists(self.mapping_path):
             try:
+                import faiss
                 logger.info(f"Loading FAISS index from {self.index_path}")
                 self.index = faiss.read_index(str(self.index_path))
                 with open(self.mapping_path, 'r', encoding='utf-8') as f:
@@ -56,7 +59,10 @@ class FaissIndexManager:
 
     def save_index(self):
         """Saves index and mapping to disk."""
+        if self.index is None:
+            return
         try:
+            import faiss
             logger.info(f"Saving FAISS index to {self.index_path}")
             faiss.write_index(self.index, str(self.index_path))
             with open(self.mapping_path, 'w', encoding='utf-8') as f:

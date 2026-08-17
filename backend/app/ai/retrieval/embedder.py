@@ -1,9 +1,7 @@
 import logging
 import numpy as np
 from typing import List
-from sentence_transformers import SentenceTransformer
 from app.ai.retrieval.config import settings
-import torch
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +25,7 @@ class Embedder:
         if self.model is None:
             logger.info(f"Lazy loading SentenceTransformer model: {settings.MODEL_NAME}")
             try:
+                import torch
                 from sentence_transformers import SentenceTransformer
                 self.model = SentenceTransformer(settings.MODEL_NAME)
                 
