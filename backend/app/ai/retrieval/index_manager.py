@@ -11,6 +11,8 @@ import os
 logger = logging.getLogger(__name__)
 
 class FaissIndexManager:
+    _instance = None
+
     def __init__(self):
         self.index_path = settings.FAISS_INDEX_PATH
         self.mapping_path = settings.ID_MAPPING_PATH
@@ -18,6 +20,13 @@ class FaissIndexManager:
         self.index = None
         self.id_mapping = []  # Maps FAISS index (int) to candidate_id (str)
         self.load_index()
+        FaissIndexManager._instance = self
+
+    @classmethod
+    def get_instance(cls) -> "FaissIndexManager":
+        if cls._instance is None:
+            cls()
+        return cls._instance
 
     def _init_index(self):
         if settings.FAISS_INDEX_TYPE == "HNSWFlat":

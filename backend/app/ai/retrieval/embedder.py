@@ -14,15 +14,7 @@ class Embedder:
         if Embedder._instance is not None:
             raise Exception("Embedder is a singleton. Use Embedder.get_instance()")
             
-        logger.info(f"Loading SentenceTransformer model: {settings.MODEL_NAME}")
-        self.model = SentenceTransformer(settings.MODEL_NAME)
-        
-        logger.info("Applying PyTorch INT8 dynamic quantization to Embedder model...")
-        self.model[0].auto_model = torch.quantization.quantize_dynamic(
-            self.model[0].auto_model,
-            {torch.nn.Linear},
-            dtype=torch.qint8
-        )
+        self.model = None
         Embedder._instance = self
 
     @classmethod
@@ -31,10 +23,32 @@ class Embedder:
             cls()
         return cls._instance
         
+    def _ensure_model(self):
+        if self.model is None:
+            logger.info(f"Lazy loading SentenceTransformer model: {settings.MODEL_NAME}")
+            try:
+                from sentence_transformers import SentenceTransformer
+                self.model = SentenceTransformer(settings.MODEL_NAME)
+                
+                logger.info("Applying PyTorch INT8 dynamic quantization to Embedder model...")
+                self.model[0].auto_model = torch.quantization.quantize_dynamic(
+                    self.model[0].auto_model,
+                    {torch.nn.Linear},
+                    dtype=torch.qint8
+                )
+            except Exception as e:
+                logger.error(f"Failed to load SentenceTransformer model: {e}")
+                self.model = None
+        
     def encode(self, texts: List[str]) -> np.ndarray:
         if not texts:
             return np.empty((0, settings.EMBEDDING_DIM), dtype=np.float32)
             
+        self._ensure_model()
+        if self.model is None:
+            # Fallback zero/deterministic embedding if model not available
+            return np.zeros((len(texts), settings.EMBEDDING_DIM), dtype=np.float32)
+
         logger.debug(f"Encoding batch of {len(texts)} texts...")
         
         embeddings = self.model.encode(
